@@ -1,0 +1,7 @@
+G = Z_add_n (509);
+GxG = (G, G);
+H = Z_mul_n (1019, qr);
+GxG: w;
+H: x, g = 452, h = 311;
+phi [ GxG -> H ] = g ^ $.0 + h ^ $.1;
+sigma = SigmaPhi[phi, x, w, 509];

@@ -1,0 +1,10 @@
+G = Z_add_n (509);
+GxG = (G, G);
+H = Z_mul_n (1019, qr);
+GxG: w0,w1,w2;
+H: x0,x1,x2, g = 452, h = 311;
+phi [ GxG -> H ] = g ^ $.0 + h ^ $.1;
+sigma0 = SigmaPhi[phi, x0, w0, 509];
+sigma1 = SigmaPhi[phi, x1, w1, 509];
+sigma2 = SigmaPhi[phi, x2, w2, 509];
+sigma = SigmaAND[sigma0, sigma1, sigma2];

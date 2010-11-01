@@ -1,0 +1,91 @@
+/* group definitions */
+// n = 1019 * 1439 = 1466341.
+// eulerphi(n)/4 = 365971.
+
+H   = Z_mul_n (1466341, qr);
+H4  = (H, H, H, H);    // x,x0,x1,x2
+H5  = (H, H, H, H, H); // x,x0,x1,x2,x2
+
+/* generators for group H */
+H: a = 544592, b = 152865, c = 1077204, d = 747183, g = 519388, h = 826776;
+
+phi_H4_H5 [ H4 -> H5 ] = [$.0, $.1, $.2, $.3, $.3];           // (x, x0, x1, x2) -> (x, x0, x1, x2, x2)
+
+/* proof for known order group */
+G   = Z_add_n (365971);
+
+G3  = (G, G, G);          // w0,w1,p
+G2  = (G, G);             // wi,pi
+GW  = (G2, G2, G2, G, G); // (w0,p0),(w1,p1),(w2,p2),p,q
+
+G3: wi;
+GW: w;
+H4: x4;
+H5: x;
+
+phi_G3_GW [ G3 -> GW ] = [?G, ?G, ?G] :                       // (w0,w1,p) -> (p0,p1,p2) ->
+                         [ [$.0, #.0],                        // ( (w0,p0),
+                           [$.1, #.1],                        //   (w1,p1),
+                           [$.0 ^ $.1, #.2],                  //   (w2,p2),
+                           $.2,                               //   p,
+                           #.2 - #.0 ^ $.1];                  //   p2 - p0*w1)
+
+phi_G2_H [ G2 -> H ] = g^$.0 + h^$.1;                         // (w,p) -> (g^w * h^p)
+
+phi_GW_H4 [ GW -> H4 ] = [a^$.0.0 + b^$.1.0 + c^$.2.0 + d^$.3,// ((w0,p0), (w1,p1), (w2,p2), p, q) -> (a^w0 * b^w1 * c^w2 * d^p,
+                          phi_G2_H($.0),                      //   g^w0 * h^p0,
+                          phi_G2_H($.1),                      //   g^w1 * h^p1,
+                          phi_G2_H($.2)];                     //   g^w2 * h^p2 )
+
+phi_XG2_H  [ G2 -> H ] = x.1^$.0 + h^$.1;                     // (w,q) -> (x0^w * h^q)
+
+phi_GW_H5 [ GW -> H5 ] = [a^$.0.0 + b^$.1.0 + c^$.2.0 + d^$.3,// ((w0,p0), (w1,p1), (w2,p2), p, q) -> (a^w0 * b^w1 * c^w2 * d^p,
+                          phi_G2_H($.0),                      //   g^w0 * h^p0,
+                          phi_G2_H($.1),                      //   g^w1 * h^p1,
+                          phi_G2_H($.2),                      //   g^w2 * h^p2,
+                          phi_XG2_H([$.1.0, $.4])];            //   x0^w1 * h^(p2-p0*w1)
+
+sphi = SigmaPhi [phi_GW_H5, x, w, 123456789];
+
+/* proof for unknown order group */
+
+GZ  = Z (1000, 2000);
+GZ_square = Z (1000000, 4000000);
+GP  = Z (0, 1152921504606846976);
+GQ  = Z (-2305843009213693952000, 1152921504606846976);
+GZI = (GZ, GZ, GP);
+GZP = (GZ, GP);
+GZQ = (GZ, GQ);
+GZP_square = (GZ_square, GP);
+GZW = (GZP, GZP, GZP_square, GP, GQ);
+
+GQ: q1 = 1;
+GZI: wzi;
+GZW: wz;
+H4: xz4;
+H5: xz;
+
+phi_GZI_GZW [ GZI -> GZW ] = [?GP, ?GP, ?GP] :                  // (w0,w1,p) -> (p0,p1,p2) ->
+                             [ [$.0, #.0],                      // ( (w0,p0),
+                               [$.1, #.1],                      //   (w1,p1),
+                               [<GZ_square>$.0 ^ $.1, #.2],     //   (w2,p2),
+                               $.2,                             //   p,
+                               <GQ>(#.2 - #.0 ^ $.1)];          //   (p0*w1,p2) -> p2 - p0*w1)
+
+phi_GZP_H [ GZP -> H ] = g^$.0 + h^$.1;                         // (w,p) -> (g^w * h^p)
+
+phi_GZW_H4 [ GZW -> H4 ] = [a^$.0.0 + b^$.1.0 + c^$.2.0 + d^$.3,// ((w0,p0), (w1,p1), (w2,p2), p, q) -> (a^w0 * b^w1 * c^w2 * d^p,
+                            phi_GZP_H($.0),                     //   g^w0 * h^p0,
+                            phi_GZP_H($.1),                     //   g^w1 * h^p1,
+                            g^$.2.0 + h^$.2.1];                 //   g^w2 * h^p2 )
+
+phi_XGZP_H  [ GZQ -> H ] = xz.1^$.0 + h^$.1;                    // (w,q) -> (x0^w * h^q)
+
+phi_GZW_H5 [ GZW -> H5 ] = [a^$.0.0 + b^$.1.0 + c^$.2.0 + d^$.3,// ((w0,p0), (w1,p1), (w2,p2), p, q) -> (a^w0 * b^w1 * c^w2 * d^p,
+                            phi_GZP_H($.0),                     //   g^w0 * h^p0,
+                            phi_GZP_H($.1),                     //   g^w1 * h^p1,
+                            g^$.2.0 + h^$.2.1,                  //   g^w2 * h^p2,
+                            phi_XGZP_H([$.1.0, $.4])];          //   x0^w1 * h^(p2-p0*w1)
+
+sgsp = SigmaGsp [phi_GZW_H5, xz, wz, 262144, 80];
+sexp = SigmaExp [phi_GZW_H5, xz, wz, 262144, 80];

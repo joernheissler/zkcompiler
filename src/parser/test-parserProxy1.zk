@@ -1,0 +1,18 @@
+/* Groups: 0 G
+           1 H
+   Vars:   0 g
+           1 x
+           2 w
+   Homs:   0 phi
+ Sigmas:   0 sigma
+*/
+G = Z(-100, 300);
+I = (_0, G);
+I: w;
+_1: x;
+_1: g = 709;
+phi [I -> _1 ] = g ^ $.0 + _0 ^ $.1;
+sigma0 = SigmaPhi[phi, x, w, 509];
+sigma1 = SigmaPhi[_0, _1, _2, 509];
+sigma = SigmaAND[sigma0, _0, sigma1];
+

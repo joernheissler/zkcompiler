@@ -1,0 +1,75 @@
+Dummy = Z (0, 0);
+H   = Z_mul_n (2135461, qr);                                // destination group for commitments
+Gw  = Z       (1890,1992);
+Gwr = Z       (0, 10);                                      // group of square roots
+Gwr4= (Gwr, Gwr, Gwr, Gwr);
+Gws = Z       (0, 100);                                     // group of squares
+Gp  = Z       (0, 9223372036854775808);                     // 2^(3 * ld 2135461)
+Gwp = Z       (-92233720368547758080, 9223372036854775808); // Gp - Gwr * Gp in [- Gwr_max * Gp_max, Gp_max]
+
+Gpart = (Gwr, Gp, Gws, Gp, Gwp); // //root, rootrnd, square, squarernd, Gp-Gp*Gwr         // secret values for one of the 4 commitments
+Gsecret = (Gw, Gp);
+
+Hcomm = (H, H);
+Hcomm4 = (Hcomm, Hcomm, Hcomm, Hcomm);
+Hcomm4x = (Hcomm4, H);
+Hpart = (H, H, H);  // xi,xi',xi'                       // public part of commitment for one square
+Ginp = (Gwr4, Gwr4, Gp); // _w,^w,p                     // secret values, input
+Htrans = (Hcomm4, Hcomm4);
+Gpos = (Gpart, Gpart, Gpart, Gpart, Gp);                // all secret values of either lower or upper bound
+Hpub = (Hpart, Hpart, Hpart, Hpart, H);                 // public part of commitment for lower or upper bound
+
+HGpart = (H, Gpart);                                    // helper group
+Hpub_gpos = (Hpub, Gpos);                               // helper group
+
+Gw: min = 1890, max = 1992;
+H: x, e = 1886983, f = 503944, g = 465360, h = 1581390; // commitment, generators
+
+Gpos: wlo, whi; // secret values
+Hpub: xlo, xhi; // public values
+
+Dummy: dummy = 0;
+
+phi_commit [ Gsecret -> H ] = g ^ $.0 + h ^ $.1;
+
+phi_gpart [ Gwr -> Gpart ] = [?Gp,?Gp] :
+                             [$, #.0, <Gws>$^$, #.1, <Gwp>(#.1 - #.0 ^ $)];
+
+phi_lo [ Ginp -> Gpos ] = [ phi_gpart($.0.0), phi_gpart($.0.1), phi_gpart($.0.2), phi_gpart($.0.3),   $.2 ];
+phi_hi [ Ginp -> Gpos ] = [ phi_gpart($.1.0), phi_gpart($.1.1), phi_gpart($.1.2), phi_gpart($.1.3), - $.2 ];
+
+phi_hcomm [ Gpart -> Hcomm ] = [ e ^ $.0 + f ^ $.1, e ^ $.2 + f ^ $.3];
+phi_hcomm4 [ Gpos -> Hcomm4 ] = [phi_hcomm($.0), phi_hcomm($.1), phi_hcomm($.2), phi_hcomm($.3)];
+phi_htrans [ Dummy -> Htrans ] = [phi_hcomm4(wlo), phi_hcomm4(whi)];
+
+phi_trans_hpart [ Hcomm -> Hpart ] = [$.0, $.1, $.1];
+phi_trans_pub [ Hcomm4x -> Hpub ] = [ phi_trans_hpart($.0.0), phi_trans_hpart($.0.1),
+                                      phi_trans_hpart($.0.2), phi_trans_hpart($.0.3),
+                                      $.1];
+phi_trans_lo [ Htrans -> Hpub ] = phi_trans_pub([$.0, x - g ^ min]);
+phi_trans_hi [ Htrans -> Hpub ] = phi_trans_pub([$.1, g ^ max - x]);
+
+
+phi_hpart_real [ HGpart -> Hpart ] = [
+    e   ^ $.1.0 + f ^ $.1.1,
+    e   ^ $.1.2 + f ^ $.1.3,
+    $.0 ^ $.1.0 + f ^ $.1.4
+];
+
+phi_pub [ Hpub_gpos -> Hpub ] = [phi_hpart_real([$.0.0.0, $.1.0]),
+                                 phi_hpart_real([$.0.1.0, $.1.1]),
+                                 phi_hpart_real([$.0.2.0, $.1.2]),
+                                 phi_hpart_real([$.0.3.0, $.1.3]),
+                                 g ^ ($.1.0.2 + $.1.1.2 + $.1.2.2 + $.1.3.2) + h ^ $.1.4];
+
+phi_pub_lo [ Gpos -> Hpub ] = phi_pub([xlo, $]);
+phi_pub_hi [ Gpos -> Hpub ] = phi_pub([xhi, $]);
+
+
+
+Slo = SigmaGsp [ phi_pub_lo, xlo, wlo, 1208925819614629174706176, 40 ];
+Shi = SigmaGsp [ phi_pub_hi, xhi, whi, 1208925819614629174706176, 40 ];
+S = SigmaAND [ Slo, Shi ];
+
+// SigmaInt [ x, w, p, 1890, 1992, g, h, e, f ];
+

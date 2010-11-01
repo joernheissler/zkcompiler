@@ -1,0 +1,15 @@
+include_directories (${ZKCompiler_SOURCE_DIR}/include) 
+include_directories (${ZKCompiler_SOURCE_DIR}/include/CodeManagement) 
+add_library (parser parser.cpp ${ZKCompiler_INCLUDE_DIR}/parser/parser.hpp)
+
+foreach (t Phi Phi2 Phi3 Phi4 NonInt Mult Intervall And Or Gsp And0 AllAnd AllOr AllAndOr AllMult AllIntervall)
+    add_executable (test-parser${t} test-parser${t}.cpp)
+    add_test (test-parser${t} ${PROJECT_BINARY_DIR}/bin/test-parser${t} ${ZKCompiler_SOURCE_DIR}/src/parser/test-parser${t}.zk)
+    DLL_COPY_TO_BINARY_DIR(test-parser${t})
+    target_link_libraries (test-parser${t} parser zkparser sigma hom element group util hash bignum CodeManagement)
+endforeach (t)
+
+add_executable (test-parserProxy test-parserProxy.cpp)
+add_test (test-parserProxy ${PROJECT_BINARY_DIR}/bin/test-parserProxy ${ZKCompiler_SOURCE_DIR}/src/parser/test-parserProxy0.zk ${ZKCompiler_SOURCE_DIR}/src/parser/test-parserProxy1.zk)
+DLL_COPY_TO_BINARY_DIR(test-parserProxy)
+target_link_libraries (test-parserProxy parser zkparser sigma hom element group util hash bignum CodeManagement)

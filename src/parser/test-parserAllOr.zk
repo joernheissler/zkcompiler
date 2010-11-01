@@ -1,0 +1,88 @@
+/* group definitions */
+
+// n = 1019 * 1439 = 1466341.
+// eulerphi(n)/4 = 365971.
+G0   = Z_add_n (365971);
+G1   = Z (77777, 184367);
+H    = Z_mul_n (1466341, qr);
+H2   = (H, H);
+H3   = (H, H, H);
+
+GGH0 = (G0, G0, H);
+GG0  = (G0, G0);
+GGG0 = (G0, G0, G0);
+
+GG1  = (G1, G1);
+GGG1 = (G1, G1, G1);
+
+/* generators for group H */
+H: g = 519388, h = 826776, i = 1241772;
+
+/* secrets for SigmaPhi,AND proof */
+GG0  : w0a;
+GGG0 : w0c;
+GGH0 : w0d;
+
+/* secrets for SigmaGsp,AND proof */
+GG1  : w1a;
+GGG1 : w1c;
+
+/* secrets for SigmaExp,AND proof */
+GG1  : w2a;
+GGG1 : w2c;
+
+/* public values for SigmaPhi,AND proof */
+H3: x0b, x0d;
+H2: x0a, x0c;
+
+/* public values for SigmaGsp,AND proof */
+H3: x1b;
+H2: x1a, x1c;
+
+/* public values for SigmaExp,AND proof */
+H3: x2b;
+H2: x2a, x2c;
+
+
+/* (w0,w1) -> (g^w0 * i^w1,  h^w1 * h^w1) */
+phi0a [ GG0 -> H2] = [g ^ $.0 + i ^ $.1, h ^ $.1 : # + #];
+
+// (w0,w1) -> (g^w0 * h^(3*w0 + 2*w1),  i^w1,  g^w0 * h ^ (5*(w0-w1)) * (i^2)^w0)
+phi0b [ GG0 -> H3 ] =  g ^ $.0 :
+                      [# + h ^ ($.0 ^ 3 + $.1 ^ 2),
+                       i ^ $.1,
+                       # + h ^ (($.0 - $.1) ^ 5) + i ^ 2 ^ $.0];
+
+// (w0,w1,w2) -> (g^w0 * h^w1 * i^w2, g^(-w0+w1-w2))
+phi0c [ GGG0 -> H2 ] = [g ^ $.0 + h ^ $.1 + i ^ $.2, g ^ (-$.0 + $.1 - $.2)];
+
+// (w0,w1,w2) -> (g^w0 * h^w1,  i^(w0+w1) * w2^42,  w2^-23 * g^w1)
+phi0d [ GGH0 -> H3 ] = [g ^ $.0 + h ^ $.1, i ^ ($.0 + $.1) + $.2 ^ 42, $.2 ^ -23 + g ^ $.1];
+
+/* (w0,w1) -> (g^w0 * i^w1,  h^w1 * h^w1) */
+phi1a [ GG1 -> H2] = [g ^ $.0 + i ^ $.1, h ^ $.1 : # + #];
+
+// (w0,w1) -> (g^w0 * h^(3*w0 + 2*w1),  i^w1,  g^w0 * h ^ (5*(w0-w1)) * (i^2)^w0)
+phi1b [ GG1 -> H3 ] =  g ^ $.0 :
+                      [# + h ^ ($.0 ^ 3 + $.1 ^ 2),
+                       i ^ $.1,
+                       # + h ^ (($.0 - $.1) ^ 5) + i ^ 2 ^ $.0];
+
+// (w0,w1,w2) -> (g^w0 * h^w1 * i^w2, g^(-w0+w1-w2))
+phi1c [ GGG1 -> H2 ] = [g ^ $.0 + h ^ $.1 + i ^ $.2, g ^ (-$.0 + $.1 - $.2)];
+
+s0a = SigmaPhi [phi0a, x0a, w0a, 123456789];
+s0b = SigmaPhi [phi0b, x0b, w0a, 123456789];
+s0c = SigmaPhi [phi0c, x0c, w0c, 123456789];
+s0d = SigmaPhi [phi0d, x0d, w0d, 123456789];
+s0  = SigmaOR [s0a, s0b, s0c, s0d];
+
+s1a = SigmaGsp [phi1a, x1a, w1a, 365971, 95];
+s1b = SigmaGsp [phi1b, x1b, w1a, 365971, 37];
+s1c = SigmaGsp [phi1c, x1c, w1c, 365971, 72];
+s1  = SigmaOR [s1a, s1b, s1c];
+
+s2a = SigmaExp [phi1a, x2a, w2a, 365971, 95];
+s2b = SigmaExp [phi1b, x2b, w2a, 365971, 37];
+s2c = SigmaExp [phi1c, x2c, w2c, 365971, 72];
+s2  = SigmaOR [s2a, s2b, s2c];
